@@ -2,11 +2,12 @@ import tensorflow as tf
 import itertools as it
 import numpy as np
 
-
 class RBM(object):
-
-
+    
+    ''' Restricted Boltzmann Machine '''
+    
     def __init__(self, num_hidden, num_visible, num_samples=128, weights=None, visible_bias=None, hidden_bias=None):
+        ''' Constructor '''
         # number of hidden units
         self.num_hidden = num_hidden
         # number of visible units
@@ -33,11 +34,14 @@ class RBM(object):
             self.sample_binary_tensor(tf.constant(0.5), self.num_samples, self.num_hidden),
             trainable=False, name='hidden_samples'
         )
+
         self.p_of_v = None
         self._all_hidden_states = None
+        self.max_feasible_for_log_pf = 24
 
     @property
     def all_hidden_states(self):
+        ''' Build array with all possible configuration of the hidden layer '''
         if self._all_hidden_states is None:
             assert self.num_hidden <= self.max_feasible_for_log_pf, \
                 'cannot generate all hidden states for num_hidden > {}'.format(self.max_feasible_for_log_pf)
@@ -46,25 +50,39 @@ class RBM(object):
 
     @staticmethod
     def _create_parameter_variable(initial_value=None, default=None):
+        ''' Initialize variables '''
         if initial_value is None:
             initial_value = default
-
         return tf.Variable(initial_value)
 
-    def energy(self, hidden_samples, visible_samples):
-        # type: (tf.Tensor, tf.Tensor) -> tf.Tensor
-        """
-        Calculate - aT*v - bT*h - vT*W*h.
+     
+    def p_of_h_given(self, v):
+        ''' Conditional probability of hidden layer given visible state '''
+        # type: (tf.Tensor) -> tf.Tensor
+        return tf.nn.sigmoid(tf.matmul(v, self.weights) + tf.transpose(self.hidden_bias))
 
-        Note that since we want tp support larger batch sizes, we do element-wise multiplication between
-        vT*W and h, and sum along the columns to get a Tensor of shape batch_size by 1
+    def p_of_v_given(self, h):
+        ''' Conditional probability of visible layer given hidden state '''
+        # type: (tf.Tensor) -> tf.Tensor
+        return tf.nn.sigmoid(tf.matmul(h, self.weights, transpose_b=True) + tf.transpose(self.visible_bias))
 
-        :param hidden_samples: Tensor of shape batch_size by num_hidden
-        :param visible_samples:  Tensor of shae batch_size by num_visible
-        """
-        return (-tf.matmul(hidden_samples, self.hidden_bias)  # b x m * m x 1
-                - tf.matmul(visible_samples, self.visible_bias)  # b x n * n x 1
-                - tf.reduce_sum(tf.matmul(visible_samples, self.weights) * hidden_samples, 1))
+    def sample_h_given(self, v):
+        ''' Sample the hidden nodes given a visible state '''
+        # type: (tf.Tensor) -> (tf.Tensor, tf.Tensor)
+        b = tf.shape(v)[0]  # number of samples
+        m = self.num_hidden
+        prob_h = self.p_of_h_given(v)
+        samples = self.sample_binary_tensor(prob_h, b, m)
+        return samples, prob_h
+
+    def sample_v_given(self, h):
+        ''' Samples the visible nodes given a hidden state '''
+        # type: (tf.Tensor) -> (tf.Tensor, tf.Tensor)
+        b = tf.shape(h)[0]  # number rof samples
+        n = self.num_visible
+        prob_v = self.p_of_v_given(h)
+        samples = self.sample_binary_tensor(prob_v, b, n)
+        return samples, prob_v
 
     def stochastic_maximum_likelihood(self, num_iterations):
         # type: (int) -> (tf.Tensor, tf.Tensor, tf.Tensor)
@@ -83,37 +101,30 @@ class RBM(object):
         self.hidden_samples = self.hidden_samples.assign(h_samples)
         self.p_of_v = p_of_v
         return self.hidden_samples, v_samples
+    
+    def energy(self, hidden_samples, visible_samples):
+        # type: (tf.Tensor, tf.Tensor) -> tf.Tensor
+        """Compute the energy:
+            E = - aT*v - bT*h - vT*W*h.
 
-    def p_of_h_given(self, v):
-        # type: (tf.Tensor) -> tf.Tensor
-        return tf.nn.sigmoid(tf.matmul(v, self.weights) + tf.transpose(self.hidden_bias))
+        Note that since we want to support larger batch sizes, we do element-wise multiplication between
+        vT*W and h, and sum along the columns to get a Tensor of shape batch_size by 1
 
-    def p_of_v_given(self, h):
-        # type: (tf.Tensor) -> tf.Tensor
-        return tf.nn.sigmoid(tf.matmul(h, self.weights, transpose_b=True) + tf.transpose(self.visible_bias))
-
-    def sample_h_given(self, v):
-        # type: (tf.Tensor) -> (tf.Tensor, tf.Tensor)
-        b = tf.shape(v)[0]  # number of samples
-        m = self.num_hidden
-        prob_h = self.p_of_h_given(v)
-        samples = self.sample_binary_tensor(prob_h, b, m)
-        return samples, prob_h
-
-    def sample_v_given(self, h):
-        # type: (tf.Tensor) -> (tf.Tensor, tf.Tensor)
-        b = tf.shape(h)[0]  # number rof samples
-        n = self.num_visible
-        prob_v = self.p_of_v_given(h)
-        samples = self.sample_binary_tensor(prob_v, b, n)
-        return samples, prob_v
-
+        :param hidden_samples: Tensor of shape batch_size by num_hidden
+        :param visible_samples:  Tensor of shae batch_size by num_visible
+        """
+        return (-tf.matmul(hidden_samples, self.hidden_bias)  # b x m * m x 1
+                - tf.matmul(visible_samples, self.visible_bias)  # b x n * n x 1
+                - tf.reduce_sum(tf.matmul(visible_samples, self.weights) * hidden_samples, 1))
 
     def free_energy(self, visible_samples):
+        ''' Compute the free energy:
+            F = aT*v + sum(softplus(a + vT*W)) '''
         free_energy = (tf.matmul(visible_samples, self.visible_bias)
                        + tf.reduce_sum(tf.nn.softplus(tf.matmul(visible_samples, self.weights)
                                                       + tf.transpose(self.hidden_bias)), 1, keep_dims=True))
         return free_energy   
+    
     def neg_log_likelihood_grad(self, visible_samples, model_samples=None, num_gibbs=2):
         # type: (tf.Tensor, tf.Tensor, int) -> tf.Tensor
 
@@ -125,10 +136,27 @@ class RBM(object):
         return expectation_from_data - expectation_from_model
 
     def neg_log_likelihood(self, visible_samples, log_Z):
+        ''' Compute the average negative log likelihood over a batch of visible samples
+            NLL = - <log(p(v))> = - <F> + log(Z) '''
         free_energy = (tf.matmul(visible_samples, self.visible_bias)
                        + tf.reduce_sum(tf.nn.softplus(tf.matmul(visible_samples, self.weights)
                                                       + tf.transpose(self.hidden_bias)), 1))
         return -tf.reduce_mean(free_energy - log_Z)
+    
+    def exact_log_partition_function(self):
+        ''' Evaluate the partition function by exact enumerations '''
+        with tf.name_scope('exact_log_Z'):
+            # Define the exponent: H*b + sum(softplus(1 + exp(a + w*H.T)))
+            first_term = tf.matmul(self.all_hidden_states, self.hidden_bias, name='first_term')
+            with tf.name_scope('second_term'):
+                second_term = tf.matmul(self.weights, self.all_hidden_states, transpose_b=True)
+                second_term = tf.nn.softplus(tf.add(self.visible_bias, second_term))
+                second_term = tf.transpose(tf.reduce_sum(second_term, reduction_indices=[0], keep_dims=True))
+            exponent = tf.cast(first_term + second_term, dtype=tf.float64, name='exponent')
+            #exponent_mean = tf.reduce_mean(exponent)
+            exponent_mean = tf.reduce_max(exponent)
+
+            return tf.log(tf.reduce_sum(tf.exp(exponent - exponent_mean))) + exponent_mean
 
     def split_samples(self, samples):
         if samples is None:
@@ -154,17 +182,3 @@ class RBM(object):
             tf.zeros(shape=(m, n))
         )
 
-    def exact_log_partition_function(self):
-        with tf.name_scope('exact_log_Z'):
-            # Define the exponent: H*b + sum(softplus(1 + exp(a + w*H.T)))
-            first_term = tf.matmul(self.all_hidden_states, self.hidden_bias, name='first_term')
-            with tf.name_scope('second_term'):
-                second_term = tf.matmul(self.weights, self.all_hidden_states, transpose_b=True)
-                second_term = tf.nn.softplus(tf.add(self.visible_bias, second_term))
-                second_term = tf.transpose(tf.reduce_sum(second_term, reduction_indices=[0], keep_dims=True))
-            exponent = tf.cast(first_term + second_term, dtype=tf.float64, name='exponent')
-            #exponent_mean = tf.reduce_mean(exponent)
-            exponent_mean = tf.reduce_max(exponent)
-
-
-            return tf.log(tf.reduce_sum(tf.exp(exponent - exponent_mean))) + exponent_mean

@@ -1,21 +1,22 @@
 from __future__ import print_function
 from pprint import pformat
-
 import tensorflow as tf
-
-import time
+import itertools as it
+from random import randint
+import argparse
 from rbm import RBM
-import sys
 import numpy as np
-import os
 import json
-from datetime import datetime
 
-def save_parameters(sess, results_dir, rbm, epochs):
+def save_parameters(sess,rbm,epochs):
     weights, visible_bias, hidden_bias = sess.run([rbm.weights, rbm.visible_bias, rbm.hidden_bias])
-    parameter_file_path = os.path.join(results_dir, 'parameters.npz_'+str(epochs))
+    
+    # *************************************************************
+    # INSERT HERE THE PATH TO THE PARAMETERS FILE
+    parameter_file_path = '*******************'
+    
     np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias,
-                        epochs=epochs) 
+                        epochs=epochs)
 
 class Args(object):
     pass
@@ -26,38 +27,39 @@ class Placeholders(object):
 class Ops(object):
     pass
 
-def mnist_gibbs():
-
-
-    # loading the data
-    xtrain=np.loadtxt('./data/train.txt')
-    xtest=np.loadtxt('./data/test.txt')
-
-    nsteps=1000000 # number of training steps
-    bsize=200 # batchsize
-    bcount=0 # counter
-    ept=np.random.permutation(xtrain) # random permutation of training data
-    epv=np.random.permutation(xtest) # random permutation of test data
-    iterations_per_epoch = xtrain.shape[0] / bsize  
-
-    results_dir = os.path.join('results', 'run-{}'.format(datetime.now().isoformat()[:-7].replace(':', '-')))
-    os.makedirs(results_dir) 
-    weights=None
-    visible_bias=None
-    hidden_bias=None
-    epochs_done=1   
-
-    num_hidden = 8  # Number of hidden units.
-    num_visible = 4  # Number of visible units. 
-    learning_rate_b = 1e-3  # Learning rate used in training.
-    num_gibbs = 10  # Number of gibbs iterations to perform.
-    train_dir = 'data/'  # Location of training data.
-    num_samples = 10 # number of chains
+def train(args):
+   
+    # Simulation parameters
+    num_visible = args.nV           # number of visible nodes
+    num_hidden = args.nH            # number of hidden nodes
+    nsteps = args.steps             # training steps
+    bsize = args.bs                 # batch size
+    learning_rate_b=args.lr         # learning rate
+    num_gibbs = args.CD             # number of Gibbs iterations
+    num_samples = args.nC           # number of chains in PCD
+    weights=None                    # weights
+    visible_bias=None               # visible bias
+    hidden_bias=None                # hidden bias
+    bcount=0                        # counter
+    epochs_done=1                   # epochs counter
+ 
+    # *************************************************************
+    # INSERT HERE THE PATH TO THE TRAINING AND TESTING DATASETS
+    trainName = '*******************'
+    testName  = '*******************'
     
-    rbm = RBM(num_hidden=num_hidden, num_visible=num_visible, weights=weights, visible_bias=visible_bias,
-              hidden_bias=hidden_bias, num_samples=num_samples) # class defining the RBM
+    # Loading the data
+    xtrain = np.loadtxt(trainName)
+    xtest = np.loadtxt(testName)
     
-     
+    ept=np.random.permutation(xtrain)               # random permutation of training data
+    epv=np.random.permutation(xtest)                # random permutation of test data
+    iterations_per_epoch = xtrain.shape[0] / bsize  # gradient iteration per epoch
+
+    # Initialize RBM class
+    rbm = RBM(num_hidden=num_hidden, num_visible=num_visible, weights=weights, visible_bias=visible_bias,hidden_bias=hidden_bias, num_samples=num_samples) 
+    
+    # Initialize operations and placeholders classes
     ops = Ops()
     placeholders = Placeholders()
 
@@ -65,9 +67,8 @@ def mnist_gibbs():
 
     total_iterations = 0 # starts at zero 
     ops.global_step = tf.Variable(total_iterations, name='global_step_count', trainable=False)
-
     
-    
+    # Decaying learning rate
     learning_rate = tf.train.exponential_decay(
         learning_rate_b,
         ops.global_step,
@@ -75,28 +76,21 @@ def mnist_gibbs():
         1.0 # decay rate =1 means no decay
     )
 
-
     cost = rbm.neg_log_likelihood_grad(placeholders.visible_samples, num_gibbs=num_gibbs)
     optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1e-2)
 
-    # define operations
+    # Define operations
     ops.lr=learning_rate
     ops.train = optimizer.minimize(cost, global_step=ops.global_step)
     ops.init = tf.group(tf.initialize_all_variables(), tf.initialize_local_variables())
-
-
+    
     with tf.Session() as sess:
         sess.run(ops.init)
-
-        #for batch in training_batches:
-        print("nsteps",nsteps)  
+        
         for ii in range(nsteps):
-            
-            #xtrain[:,(bcount-1)*bs+1:(bcount-1)*bs+bs]
             if bcount*bsize+ bsize>=xtrain.shape[0]:
                bcount=0
                ept=np.random.permutation(xtrain)
-
 
             batch=ept[ bcount*bsize: bcount*bsize+ bsize,:]
             bcount=bcount+1
@@ -104,16 +98,73 @@ def mnist_gibbs():
             
             _, num_steps = sess.run([ops.train, ops.global_step], feed_dict=feed_dict)
 
-            #print(ops.lr.eval(),ops.global_step.eval())
-            
-
             if num_steps % iterations_per_epoch == 0:
-                print(ops.lr.eval(),ops.global_step.eval())
-                print("saving parameters epoch ", epochs_done)
-                save_parameters(sess, results_dir, rbm, epochs_done)
+                print ('Epoch = %d     ' % epochs_done)
+                #save_parameters(sess, rbm)
                 epochs_done += 1
 
+def sample(args):
+       
+    num_visible = args.nV   # number of visible nodes
+    num_hidden = args.nH    # number of hidden nodes
+    
+    # *************************************************************
+    # INSERT HERE THE PATH TO THE PARAMETERS FILE
+    path_to_params = '*******************'
+   
+    # Load the RBM parameters 
+    params = np.load(path_to_params)
+    weights = params['weights']
+    visible_bias = params['visible_bias']
+    hidden_bias = params['hidden_bias']
+    hidden_bias=np.reshape(hidden_bias,(hidden_bias.shape[0],1))
+    visible_bias=np.reshape(visible_bias,(visible_bias.shape[0],1))
+  
+    # Sampling parameters
+    num_samples=1000   # how many independent chains will be sampled
+    gibb_updates=100   # how many gibbs updates per call to the gibbs sampler
+    nbins=1000         # number of calls to the RBM sampler      
 
-mnist_gibbs()
+    # Initialize RBM class
+    rbm = RBM(num_hidden=num_hidden, num_visible=num_visible, weights=weights, visible_bias=visible_bias,hidden_bias=hidden_bias, num_samples=num_samples)
+    hsamples,vsamples=rbm.stochastic_maximum_likelihood(gibb_updates)
+
+    # Initialize tensorflow
+    init = tf.group(tf.initialize_all_variables(), tf.initialize_local_variables())
+   
+    with tf.Session() as sess:
+        sess.run(init)
+    
+        for i in range(nbins):
+            print ('bin %d\t' %i)
+            
+            # Gibbs sampling
+            _,samples=sess.run([hsamples,vsamples])
 
 
+def main()
+    
+    # Initialize the command line parser
+    parser = argparse.ArgumentParser()
+    
+    # Read command line arguments
+    parser.add_argument('command',type=str,help='command to execute') 
+    parser.add_argument('-nV',type=int,default=4,help='number of visible nodes')                
+    parser.add_argument('-nH',type=int,default=4,help='number of hidden nodes')   
+    parser.add_argument('-steps',type=int,default=1000000,help='training steps')  
+    parser.add_argument('-lr',type=float,default=1e-3,help='learning rate')   
+    parser.add_argument('-bs',type=int,default=100,help='batch size')   
+    parser.add_argument('-CD',type=int,default=10,help='steps of contrastive divergence') 
+    parser.add_argument('-nC',type=float,default=10,help='number of chains in PCD')  
+    
+    # Parse the arguments
+    args = parser.parse_args()
+    
+    if args.command == 'train':
+        train(args)
+    
+    if args.command == 'sample':
+        sample(args)
+
+if __name__=='__main__':
+    main()
