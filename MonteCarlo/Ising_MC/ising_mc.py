@@ -7,20 +7,20 @@ import random
 
 ### Input parameters: ###
 J = 1          #coupling parameter
-L = 10        #linear size of the lattice
+L = 4        #linear size of the lattice
 N_spins = L**2 #total number of spins
 
 ### Temperature list: ###
 #T_list=[1.0000000000000000,1.0634592657106510,1.1269185314213019,1.1903777971319529,1.2538370628426039,1.3172963285532548,1.3807555942639058,1.4442148599745568,1.5076741256852078,1.5711333913958587,1.6345926571065097,1.6980519228171607,1.7615111885278116,1.8249704542384626,1.8884297199491136,1.9518889856597645,2.0153482513704155,2.0788075170810667,2.1422667827917179,2.2057260485023691,2.3326445799236715,2.3961038456343227,2.4595631113449739,2.5230223770556250,2.5864816427662762,2.6499409084769274,2.7134001741875786,2.7768594398982298,2.8403187056088810,2.9037779713195322,2.9672372370301834,3.0306965027408346,3.0941557684514858,3.1576150341621370,3.2210742998727881,3.2845335655834393,3.3479928312940905,3.4114520970047417,3.4749113627153929,3.5383706284260401]
-T_list = [2.0]
-#T_list = np.linspace(5.0,0.2,10)
+#T_list = [1.5]
+T_list = np.linspace(5.0,0.5,19)
 
-initialState = 0 #0 means start from all up state, 1 means start from random state
+initialState = 1 #0 means start from all up state, 1 means start from random state
 
 ### Monte Carlo parameters: ###
-n_eqSweeps = 0   #number of equilibration sweeps
+n_eqSweeps = 1000   #number of equilibration sweeps
 n_bins = 10000     #total number of measurement bins
-n_sweepsPerBin=1 #number of sweeps performed in one bin
+n_sweepsPerBin=20 #number of sweeps performed in one bin
 
 ### Parameters needed to show animation of spin configurations: ###
 animate = False
@@ -90,8 +90,7 @@ for T in T_list:
   
   #open a file where observables will be recorded:
   fileName         = "ising2d_L%d_T%.4f_init%d.dat" %(L,T,initialState)
-  file_observables = open(fileName, 'w')
-  file_observables.write("#bin num. \t E \t E^2 \t |M| \t M^2 \n") #First line labels the columns
+  file_observables = open(fileName, 'w', 0)
   
   #equilibration sweeps:
   for i in range(n_eqSweeps):
@@ -102,10 +101,11 @@ for T in T_list:
     for j in range(n_sweepsPerBin):
       sweep()
     #end loop over j
+    
     energy = getEnergy()
     mag    = getMag()
     
-    file_observables.write("%d \t %.8f \t %.8f \t %.8f \t %.8f \n" %(i, energy, energy**2, abs(mag), mag**2))
+    file_observables.write("%d \t %.8f \t %.8f \t %.8f \t %.8f \n" %(i, energy, mag))
   
     if animate:
       #Display the current spin configuration:
@@ -116,6 +116,9 @@ for T in T_list:
       plt.title("%d x %d Ising model, T = %.3f" %(L,L,T))
       plt.pause(0.01)
     #end if
+
+    if (i+1)%1000==0:
+      print "  %d" %(i+1)
   #end loop over i
 
   file_observables.close()
