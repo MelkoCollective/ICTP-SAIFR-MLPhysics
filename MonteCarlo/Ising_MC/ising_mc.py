@@ -19,7 +19,7 @@ initialState = 1 #0 means start from all up state, 1 means start from random sta
 
 ### Monte Carlo parameters: ###
 n_eqSweeps = 1000   #number of equilibration sweeps
-n_bins = 10000     #total number of measurement bins
+n_bins = 1000     #total number of measurement bins
 n_sweepsPerBin=20 #number of sweeps performed in one bin
 
 ### Parameters needed to show animation of spin configurations: ###

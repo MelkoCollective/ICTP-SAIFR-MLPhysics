@@ -85,14 +85,12 @@ def plot_observables():
     data = np.loadtxt( file )
 
     E   = data[:,1]
-    ESq = data[:,2]
-    M   = abs(data[:,3])
-    MSq = data[:,4]
+    M   = abs(data[:,2])
 
     energy.append  ( np.mean(E)/(1.0*N_spins) )
     mag.append     ( np.mean(M)/(1.0*N_spins) )
-    specHeat.append( (np.mean(ESq) - np.mean(E)**2)/(1.0*T**2*N_spins) )
-    susc.append    ( (np.mean(MSq) - np.mean(M)**2)/(1.0*T*N_spins) )
+    specHeat.append( (np.mean(E**2) - np.mean(E)**2)/(1.0*T**2*N_spins) )
+    susc.append    ( (np.mean(M**2) - np.mean(M)**2)/(1.0*T*N_spins) )
   #end loop over T
 
   plt.figure(figsize=(8,6))
