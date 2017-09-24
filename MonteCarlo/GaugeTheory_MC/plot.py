@@ -11,8 +11,8 @@ N_spins = 2*L**2
 def plot_versusMCTime():
   T = 1.0000
   
-  file_init0 = open("ising2d_L%d_T%.4f_init0.dat" %(L,T), 'r')
-  file_init1 = open("ising2d_L%d_T%.4f_init1.dat" %(L,T), 'r')
+  file_init0 = open('gaugeTheory2d_L%d_T%.4f_init0.dat' %(L,T), 'r')
+  file_init1 = open('gaugeTheory2d_L%d_T%.4f_init1.dat' %(L,T), 'r')
 
   data_init0 = np.loadtxt( file_init0 )
   data_init1 = np.loadtxt( file_init1 )
@@ -30,7 +30,7 @@ def plot_versusMCTime():
 
   plt.xlabel('Monte Carlo time')
   plt.ylabel('energy')
-  plt.title("%d x %d Ising model, T = %.3f" %(L,L,T))
+  plt.title('%d x %d Ising lattice gauge theory, T = %.3f' %(L,L,T))
 
 ### Function for part 2: ###
 def plot_autocorrelation():
@@ -38,7 +38,7 @@ def plot_autocorrelation():
   autocorrTime = []
 
   for T in T_list:
-    file = open("ising2d_L%d_T%.4f_init1.dat" %(L,T), 'r')
+    file = open('gaugeTheory2d_L%d_T%.4f_init1.dat' %(L,T), 'r')
     data = np.loadtxt( file )
 
     time    = data[:,0].astype(int)
@@ -64,7 +64,7 @@ def plot_autocorrelation():
     plt.yscale('log')
     plt.xlim([0,100])
     plt.ylim([10**(-2),1])
-    plt.title('%d x %d Ising model, T = %.3f' %(L,L,T))
+    plt.title('%d x %d Ising lattice gauge theory, T = %.3f' %(L,L,T))
   #end loop over T
   
   plt.figure()
@@ -81,7 +81,7 @@ def plot_observables():
   susc     = []
 
   for T in T_list:
-    file = open("ising2d_L%d_T%.4f_init1.dat" %(L,T), 'r')
+    file = open('gaugeTheory2d_L%d_T%.4f_init1.dat' %(L,T), 'r')
     data = np.loadtxt( file )
 
     E   = data[:,1]
@@ -99,11 +99,11 @@ def plot_observables():
   
   #plt.subplot(221)
   
-  file_old = 'averages_L4_alpha1.txt'
-  data_old = np.loadtxt( file_old )
-  T_old = data_old[:,0]
-  E_old = data_old[:,1]
-  plt.plot(T_old,E_old,'o-')
+#  file_old = 'averages_L4_alpha1.txt'
+#  data_old = np.loadtxt( file_old )
+#  T_old = data_old[:,0]
+#  E_old = data_old[:,1]
+#  plt.plot(T_old,E_old,'o-')
   
   plt.plot(T_list, energy, 'o-')
   plt.xlabel('T')
@@ -130,7 +130,7 @@ def plot_observables():
 
   plt.xlim([0,5])
 
-  plt.suptitle('%d x %d Ising model' %(L,L))
+  plt.suptitle('%d x %d Ising lattice gauge theory' %(L,L))
   #plt.tight_layout()
 
 

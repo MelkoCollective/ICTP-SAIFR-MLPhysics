@@ -1,7 +1,5 @@
-# Monte Carlo for the Ising model
+# Monte Carlo for the Ising lattice gauge theory
 
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import numpy as np
 import random
 
@@ -16,18 +14,12 @@ N_spins = 2*L**2 #total number of spins
 #T_list = [1.5]
 T_list = np.linspace(5.0,0.5,19)
 
-
-random.seed(1234)
 initialState = 1 #0 means start from all up state, 1 means start from random state
 
 ### Monte Carlo parameters: ###
 n_eqSweeps = 100   #number of equilibration sweeps
 n_bins = 1000    #total number of measurement bins
 n_sweepsPerBin=1 #number of sweeps performed in one bin
-
-### Parameters needed to show animation of spin configurations: ###
-animate = False
-bw_cmap = colors.ListedColormap(['black', 'white'])
 
 ### Function to calculate the total energy ###
 def getEnergy():
@@ -65,7 +57,7 @@ def sweep():
       spins[spinLoc] = -spins[spinLoc]
   #end loop over i
 
-### Store each spin's four nearest neighbours in a neighbours array (using periodic boundary conditions): ###
+### Store each lattice site's four nearest neighbours in a neighbours array (using periodic boundary conditions): ###
 neighbours = np.zeros((N_plaq,4),dtype=np.int)
 for i in range(N_plaq):
   #neighbour to the right:
@@ -89,7 +81,7 @@ for i in range(N_plaq):
     neighbours[i,3]=i-L+N_plaq
 #end of for loop
 
-#initially, the spins are all up (a low-T phase) or all random (a high-T phase):
+#initially, the spins are all up or all random (a high-T phase):
 spins = np.ones(N_spins,dtype=np.int)
 if initialState != 0:
   for i in range(N_spins):
@@ -97,10 +89,10 @@ if initialState != 0:
 
 #loop over all temperatures:
 for T in T_list:
-  print("T = %f"%T)
+  print('T = %f' %T)
   
   #open a file where observables will be recorded:
-  fileName         = "ising2d_L%d_T%.4f_init%d.dat" %(L,T,initialState)
+  fileName         = 'gaugeTheory2d_L%d_T%.4f_init%d.dat' %(L,T,initialState)
   file_observables = open(fileName, 'w', 0)
   
   #equilibration sweeps:
@@ -116,24 +108,11 @@ for T in T_list:
     energy = getEnergy()
     mag    = getMag()
     
-    file_observables.write("%d \t %.8f \t %.8f \n" %(i, energy, mag))
-  
-    if animate:
-      #Display the current spin configuration:
-      plt.clf()
-      plt.imshow( spins.reshape((L,L)), cmap=bw_cmap, norm=colors.BoundaryNorm([-1,0,1], bw_cmap.N) )
-      plt.xticks([])
-      plt.yticks([])
-      plt.title("%d x %d Ising model, T = %.3f" %(L,L,T))
-      plt.pause(0.01)
-    #end if
+    file_observables.write('%d \t %.8f \t %.8f \n' %(i, energy, mag))
 
     if (i+1)%1000==0:
-      print "  %d" %(i+1)
+      print '  %d bins complete' %(i+1)
   #end loop over i
 
   file_observables.close()
 #end loop over temperature
-
-if animate:
-  plt.show()
