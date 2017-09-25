@@ -10,7 +10,7 @@ N_spins = 2*L**2
 energy   = []
 
 for T in T_list:
-  file = open('gaugeTheory2d_L%d_T%.4f_init1.dat' %(L,T), 'r')
+  file = open('gaugeTheory2d_L%d_T%.4f_init1.txt' %(L,T), 'r')
   data = np.loadtxt( file )
 
   E   = data[:,1]

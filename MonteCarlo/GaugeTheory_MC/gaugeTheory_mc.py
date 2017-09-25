@@ -92,7 +92,7 @@ for T in T_list:
   print('T = %f' %T)
   
   #open a file where observables will be recorded:
-  fileName         = 'gaugeTheory2d_L%d_T%.4f_init%d.dat' %(L,T,initialState)
+  fileName         = 'gaugeTheory2d_L%d_T%.4f_init%d.txt' %(L,T,initialState)
   file_observables = open(fileName, 'w', 0)
   
   #equilibration sweeps:
