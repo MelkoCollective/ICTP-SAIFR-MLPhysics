@@ -56,8 +56,12 @@ def getEnergy():
 #end of getEnergy() function
 
 ### Function to calculate the product of spins on plaquette i: ###
+
 def getPlaquetteProduct(i):
-  return spins[2*i]*spins[(2*i)+1]*spins[2*neighbours[i,1]]*spins[(2*neighbours[i,0])+1]
+  # ************************************************************** #
+  # *** FILL IN: CALCULATE THE PRODUCT OF SPINS ON PLAQUETTE i *** #
+  # ************************************************************** #
+  return 1.0
 
 ### Function to perform one Monte Carlo sweep ###
 def sweep():
@@ -66,15 +70,10 @@ def sweep():
     #randomly choose which spin to consider flipping:
     spinLoc = random.randint(0,N_spins-1)
     
-    #calculate the change in energy of the proposed move by considering the two plaquettes it will affect:
-    plaq1 = spinLoc//2
-    #get plaq2 based on whether the spin is on a horizontal or vertical link:
-    if (spinLoc%2)==0:
-      plaq2 = neighbours[plaq1,3]
-    else:
-      plaq2 = neighbours[plaq1,2]
-    
-    deltaE = 2*J*( getPlaquetteProduct(plaq1) + getPlaquetteProduct(plaq2) )
+    # ************************************************************ #
+    # *** FILL IN: CALCULATE deltaE FOR THE PROPOSED SPIN FLIP *** #
+    # ************************************************************ #
+    deltaE = 0
   
     if (deltaE <= 0) or (random.random() < np.exp(-deltaE/T)):
       #flip the spin:

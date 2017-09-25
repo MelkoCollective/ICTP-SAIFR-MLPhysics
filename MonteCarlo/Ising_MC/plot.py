@@ -31,7 +31,9 @@ for T in T_list:
   energy.append  ( np.mean(E)/(1.0*N_spins) )
   mag.append     ( np.mean(M)/(1.0*N_spins) )
   
-  ### FILL IN THE ESTIMATORS FOR THE SPECIFIC HEAT AND SUSCEPTIBILITY ###
+  # *********************************************************************** #
+  # *** FILL IN THE ESTIMATORS FOR THE SPECIFIC HEAT AND SUSCEPTIBILITY *** #
+  # *********************************************************************** #
   specHeat.append( 0 )
   susc.append    ( 0 )
 #end loop over T
