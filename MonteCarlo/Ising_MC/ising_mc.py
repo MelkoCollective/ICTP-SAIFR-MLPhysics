@@ -9,9 +9,8 @@ import numpy as np
 import random
 
 ### Input parameters: ###
-#T_list = np.linspace(5.0,0.5,10) #temperature list
-T_list = [2.3]
-L = 30                            #linear size of the lattice
+T_list = np.linspace(5.0,0.5,19) #temperature list
+L = 4                            #linear size of the lattice
 N_spins = L**2                   #total number of spins
 J = 1                            #coupling parameter
 
@@ -19,7 +18,7 @@ J = 1                            #coupling parameter
 Tc = 2.0/np.log(1.0 + np.sqrt(2))
 
 ### Monte Carlo parameters: ###
-n_eqSweeps = 100   #number of equilibration sweeps
+n_eqSweeps = 1000   #number of equilibration sweeps
 n_bins = 350       #total number of measurement bins
 n_sweepsPerBin=50  #number of sweeps performed in one bin
 
