@@ -23,7 +23,7 @@ K = 3 # number of branches
 X = np.zeros((N*K,D)) # matrix containing the dataset
 y = np.zeros(N*K, dtype='uint8') # labels
 # data generation
-for j in xrange(K):
+for j in range(K):
   ix = range(N*j,N*(j+1))
   r = np.linspace(0.0,1,N) # radius
   t = np.linspace(j*4,(j+1)*4,N) + np.random.randn(N)*0.2 # theta
@@ -51,7 +51,7 @@ step_size = 1.0 #e-0 training rate
 
 # gradient descent loop
 num_examples = X.shape[0] # size of dataset
-for i in xrange(20000):
+for i in range(20000):
  
   # forward pass 
   z1=np.dot(X, W1) + b1 # z1
