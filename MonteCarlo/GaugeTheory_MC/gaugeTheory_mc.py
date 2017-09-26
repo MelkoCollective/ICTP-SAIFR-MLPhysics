@@ -15,7 +15,7 @@ J = 1            #coupling parameter
 
 ### Monte Carlo parameters: ###
 n_eqSweeps = 1000   #number of equilibration sweeps
-n_bins = 500    #total number of measurement bins
+n_bins = 10    #total number of measurement bins
 n_sweepsPerBin=50 #number of sweeps performed in one bin
 
 ### Initially, the spins are in a random state (a high-T phase): ###

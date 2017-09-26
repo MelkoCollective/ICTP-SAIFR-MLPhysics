@@ -9,18 +9,19 @@ import numpy as np
 import random
 
 ### Input parameters: ###
-T_list = np.linspace(5.0,0.5,19) #temperature list
-L = 4                            #linear size of the lattice
+T_list = np.linspace(5.0,2.0,7) #temperature list
+T_list = [2.0]
+L = 20                            #linear size of the lattice
 N_spins = L**2                   #total number of spins
 J = 1                            #coupling parameter
 
 ### Critical temperature: ###
-Tc = 2.0/np.log(1.0 + np.sqrt(2))
+Tc = 2.0/np.log(1.0 + np.sqrt(2))*J
 
 ### Monte Carlo parameters: ###
-n_eqSweeps = 1000   #number of equilibration sweeps
-n_bins = 350       #total number of measurement bins
-n_sweepsPerBin=50  #number of sweeps performed in one bin
+n_eqSweeps = 0   #number of equilibration sweeps
+n_bins = 1000       #total number of measurement bins
+n_sweepsPerBin=1  #number of sweeps performed in one bin
 
 ### Files to write training and testing spin configurations (X) and phases (y): ###
 train_frac   = 2.0/7.0 #fraction of data to be used for training
