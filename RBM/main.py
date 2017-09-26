@@ -8,15 +8,30 @@ from rbm import RBM
 import numpy as np
 import json
 
-def save_parameters(sess,rbm,epochs):
-    weights, visible_bias, hidden_bias = sess.run([rbm.weights, rbm.visible_bias, rbm.hidden_bias])
+def main()
     
-    # *************************************************************
-    # INSERT HERE THE PATH TO THE PARAMETERS FILE
-    parameter_file_path = '*******************'
+    # Initialize the command line parser
+    parser = argparse.ArgumentParser()
     
-    np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias,
-                        epochs=epochs)
+    # Read command line arguments
+    parser.add_argument('command',type=str,help='command to execute') 
+    parser.add_argument('-nV',type=int,default=4,help='number of visible nodes')                
+    parser.add_argument('-nH',type=int,default=4,help='number of hidden nodes')   
+    parser.add_argument('-steps',type=int,default=1000000,help='training steps')  
+    parser.add_argument('-lr',type=float,default=1e-3,help='learning rate')   
+    parser.add_argument('-bs',type=int,default=100,help='batch size')   
+    parser.add_argument('-CD',type=int,default=10,help='steps of contrastive divergence') 
+    parser.add_argument('-nC',type=float,default=10,help='number of chains in PCD')  
+    
+    # Parse the arguments
+    args = parser.parse_args()
+    
+    if args.command == 'train':
+        train(args)
+    
+    if args.command == 'sample':
+        sample(args)
+
 
 class Args(object):
     pass
@@ -142,29 +157,16 @@ def sample(args):
             _,samples=sess.run([hsamples,vsamples])
 
 
-def main()
+def save_parameters(sess,rbm,epochs):
+    weights, visible_bias, hidden_bias = sess.run([rbm.weights, rbm.visible_bias, rbm.hidden_bias])
     
-    # Initialize the command line parser
-    parser = argparse.ArgumentParser()
+    # *************************************************************
+    # INSERT HERE THE PATH TO THE PARAMETERS FILE
+    parameter_file_path = '*******************'
     
-    # Read command line arguments
-    parser.add_argument('command',type=str,help='command to execute') 
-    parser.add_argument('-nV',type=int,default=4,help='number of visible nodes')                
-    parser.add_argument('-nH',type=int,default=4,help='number of hidden nodes')   
-    parser.add_argument('-steps',type=int,default=1000000,help='training steps')  
-    parser.add_argument('-lr',type=float,default=1e-3,help='learning rate')   
-    parser.add_argument('-bs',type=int,default=100,help='batch size')   
-    parser.add_argument('-CD',type=int,default=10,help='steps of contrastive divergence') 
-    parser.add_argument('-nC',type=float,default=10,help='number of chains in PCD')  
-    
-    # Parse the arguments
-    args = parser.parse_args()
-    
-    if args.command == 'train':
-        train(args)
-    
-    if args.command == 'sample':
-        sample(args)
+    np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias,
+                        epochs=epochs)
+
 
 if __name__=='__main__':
     main()
