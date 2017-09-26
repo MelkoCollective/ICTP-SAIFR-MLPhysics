@@ -190,7 +190,7 @@ def main(pars):
         
         # Generate the training datasets
         print('generating the dataset...')
-        #buildDataset(L,B,psi0,Nsamples) 
+        buildDataset(L,B,psi0,Nsamples) 
         print('\n')
 
 

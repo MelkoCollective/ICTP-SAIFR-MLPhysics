@@ -28,7 +28,7 @@ class Ops(object):
 def train(args):
    
     # Simulation parameters
-    B = args.t                      # magnetic field
+    B = args.B                      # magnetic field
     num_visible = args.L            # number of visible nodes
     num_hidden = args.nH            # number of hidden nodes
     nsteps = args.steps             # training steps
@@ -209,7 +209,7 @@ def train(args):
 def sample(args):
        
     # Architecture
-    B = args.t                      # magnetic field
+    B = args.B                      # magnetic field
     num_visible = args.L            # number of visible nodes
     num_hidden = args.nH            # number of hidden nodes
     

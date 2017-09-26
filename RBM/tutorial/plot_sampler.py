@@ -148,7 +148,7 @@ def observe_tfim1d():
         plt.contour(X,Y,correlations,levels,colors=lineCol,linewidths=1.5)
  
         plt.tight_layout()
-        plt.pause(0.01)
+        plt.pause(0.1)
     
 
 if __name__ == "__main__":

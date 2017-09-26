@@ -28,7 +28,7 @@ class Ops(object):
 def train(args):
    
     # Simulation parameters
-    T = args.t                      # temperature
+    T = args.T                      # temperature
     num_visible = args.L*args.L     # number of visible nodes
     num_hidden = args.nH            # number of hidden nodes
     nsteps = args.steps             # training steps
@@ -168,7 +168,7 @@ def train(args):
 
 def sample(args):
        
-    T = args.t                      # temperature
+    T = args.T                      # temperature
     num_visible = args.L*args.L     # number of visible units 
     num_hidden = args.nH            # number of hidden units
     
