@@ -34,6 +34,8 @@ def observe_ising2d():
         # Plot the energy
         plt.subplot(221)
         x = [i for i in range(observables.shape[0])]
+        print observables
+        print x
         plt.plot(x,observables[:,0],color='red',marker='o',markersize=mS,linewidth=lw)
         data = dataMC[:,header.index('E')]
         plt.plot(xMC,data,color='k',marker='o',linewidth=lw_exact,markersize=mS_exact)
