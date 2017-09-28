@@ -26,15 +26,11 @@ class RBM(object):
     default = tf.random_normal(shape=(self.num_visible, self.num_hidden), mean=0, stddev=0.05)
     self.weights = self._create_parameter_variable(weights, default)
 
-    #variables for sampling:
-    self.num_samples = num_samples #number of samples to return when sample_p_of_v is called.
-
+    #variables for sampling (num_samples is the number of samples to return):
     self.hidden_samples = tf.Variable(
-      self.sample_binary_tensor(tf.constant(0.5), self.num_samples, self.num_hidden),
+      self.sample_binary_tensor(tf.constant(0.5), num_samples, self.num_hidden),
       trainable=False, name='hidden_samples'
     )
-
-    self.p_of_v = None
   #end of constructor
 
   ### Method to initialize variables: ###
@@ -61,7 +57,7 @@ class RBM(object):
     m = self.num_hidden
     prob_h = self.p_of_h_given(v)
     samples = self.sample_binary_tensor(prob_h, b, m)
-    return samples, prob_h
+    return samples
 
   ### Method to sample the visible nodes given a hidden state: ###
   def sample_v_given(self, h):
@@ -70,7 +66,7 @@ class RBM(object):
     n = self.num_visible
     prob_v = self.p_of_v_given(h)
     samples = self.sample_binary_tensor(prob_v, b, n)
-    return samples, prob_v
+    return samples
 
   ###
   # Method for persistent contrastive divergence (CD_k):
@@ -82,13 +78,11 @@ class RBM(object):
     # type: (int) -> (tf.Tensor, tf.Tensor, tf.Tensor)
     h_samples = self.hidden_samples
     v_samples = None
-    p_of_v = 0
     for i in range(num_iterations):
-        v_samples, p_of_v = self.sample_v_given(h_samples)
-        h_samples, _ = self.sample_h_given(v_samples)
+        v_samples = self.sample_v_given(h_samples)
+        h_samples = self.sample_h_given(v_samples)
 
     self.hidden_samples = self.hidden_samples.assign(h_samples)
-    self.p_of_v = p_of_v
     return self.hidden_samples, v_samples
  
   ###
@@ -109,7 +103,7 @@ class RBM(object):
   def neg_log_likelihood_grad(self, visible_samples, num_gibbs=2):
     # type: (tf.Tensor, tf.Tensor, int) -> tf.Tensor
 
-    hidden_samples, _ = self.sample_h_given(visible_samples)
+    hidden_samples = self.sample_h_given(visible_samples)
     expectation_from_data = tf.reduce_mean(self.energy(hidden_samples, visible_samples))
     
     model_hidden, model_visible = self.stochastic_maximum_likelihood(num_gibbs)
@@ -134,4 +128,3 @@ class RBM(object):
     )
 
 #end of RBM class
-
