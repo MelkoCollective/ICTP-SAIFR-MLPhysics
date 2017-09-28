@@ -160,7 +160,7 @@ class RBM(object):
             NLL = - <log(p(v))> = - <F> + log(Z) '''
         free_energy = (tf.matmul(visible_samples, self.visible_bias)
                        + tf.reduce_sum(tf.nn.softplus(tf.matmul(visible_samples, self.weights)
-                                                      + tf.transpose(self.hidden_bias)), 1))
+                                                      + tf.transpose(self.hidden_bias)), 1, keep_dims=True))
         return -tf.reduce_mean(free_energy - log_Z)
     
     def exact_log_partition_function(self):

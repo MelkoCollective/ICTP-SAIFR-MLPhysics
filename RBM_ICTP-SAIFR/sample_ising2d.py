@@ -24,7 +24,7 @@ nn=np.loadtxt(path_to_lattice)
 #Sampling parameters:
 num_samples  = 500  # how many independent chains will be sampled
 gibb_updates = 2    # how many gibbs updates per call to the gibbs sampler
-nbins        = 1000 # number of calls to the RBM sampler
+nbins        = 100  # number of calls to the RBM sampler
 
 observables_dir = 'data_ising2d/RBM_observables'
 if not(os.path.isdir(observables_dir)):

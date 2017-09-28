@@ -16,8 +16,8 @@ parser.add_argument('-nH',type=int,help='number of hidden nodes')
 parser.add_argument('-steps',type=int,default=1000000,help='training steps')  
 parser.add_argument('-lr',type=float,default=1e-3,help='learning rate')   
 parser.add_argument('-bs',type=int,default=100,help='batch size')   
-parser.add_argument('-CD',type=int,default=10,help='steps of contrastive divergence') 
-parser.add_argument('-nC',type=float,default=10,help='number of chains in PCD')  
+parser.add_argument('-CD',type=int,default=20,help='steps of contrastive divergence')
+parser.add_argument('-nC',type=float,default=20,help='number of chains in PCD')
 
 # Parse the arguments
 args = parser.parse_args()
