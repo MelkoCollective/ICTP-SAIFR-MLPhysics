@@ -41,7 +41,7 @@ for i in range(len(T_list)):
   observables_filePath += '_T' + str(T) + '.txt'
   bins_filePaths.append(observables_filePath)
   fout = open(observables_filePath,'w')
-  fout.write('# E          M          C          S\n')
+  fout.write('# E          M           C            S\n')
   fout.close()
   
   #Read in the trained RBM parameters:
