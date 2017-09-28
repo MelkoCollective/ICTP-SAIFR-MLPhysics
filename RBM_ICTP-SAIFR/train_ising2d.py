@@ -45,7 +45,7 @@ visible_bias = None  #visible bias
 hidden_bias  = None  #hidden bias
 
 # Load the MC configuration training data:
-trainFileName = 'data_ising2d/datasets/ising2d_L'+str(L)+'_T'+str(T)+'_train.txt'
+trainFileName = 'data_ising2d/MC_results/ising2d_L'+str(L)+'_T'+str(T)+'_train.txt'
 xtrain        = np.loadtxt(trainFileName)
 ept           = np.random.permutation(xtrain) # random permutation of training data
 iterations_per_epoch = xtrain.shape[0] / bsize  
