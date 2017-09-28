@@ -1,34 +1,33 @@
+########## ICTP-SAIFR Minicourse on Machine Learning for Many-Body Physics ##########
+### Roger Melko, Juan Carrasquilla, Lauren Hayward Sierens and Giacomo Torlai
+### Tutorial 4: Restricted Boltzmann Machine (RBM)
+#####################################################################################
+
 import tensorflow as tf
 import itertools as it
 import numpy as np
 
 class RBM(object):
-    
-    ''' Restricted Boltzmann Machine '''
-    
+  
+    ### Constructor ###
     def __init__(self, num_hidden, num_visible, num_samples=128, weights=None, visible_bias=None, hidden_bias=None):
-        ''' Constructor '''
-        # number of hidden units
-        self.num_hidden = num_hidden
-        # number of visible units
-        self.num_visible = num_visible
+        self.num_hidden = num_hidden   #number of hidden units
+        self.num_visible = num_visible #number of visible units
 
-        # visible bias
-        # default = tf.random_normal(shape=(self.num_visible, 1), mean=-0.5, stddev=0.05)
+        #visible bias:
         default = tf.zeros(shape=(self.num_visible, 1))
         self.visible_bias = self._create_parameter_variable(visible_bias, default)
-        # hidden bias
-        # default = tf.random_normal(shape=(self.num_hidden, 1), mean=-0.2, stddev=0.05)
+        
+        #hidden bias:
         default = tf.zeros(shape=(self.num_hidden, 1))
         self.hidden_bias = self._create_parameter_variable(hidden_bias, default)
-        # pairwise weights
+        
+        #pairwise weights:
         default = tf.random_normal(shape=(self.num_visible, self.num_hidden), mean=0, stddev=0.05)
-        #default = tf.zeros(shape=(self.num_visible, self.num_hidden))
         self.weights = self._create_parameter_variable(weights, default)
 
-        # Variables for sampling.
-        # number of samples to return when sample_p_of_v is called.
-        self.num_samples = num_samples
+        #variables for sampling:
+        self.num_samples = num_samples #number of samples to return when sample_p_of_v is called.
 
         self.hidden_samples = tf.Variable(
             self.sample_binary_tensor(tf.constant(0.5), self.num_samples, self.num_hidden),
@@ -40,17 +39,6 @@ class RBM(object):
         )
 
         self.p_of_v = None
-        self._all_hidden_states = None
-        self.max_feasible_for_log_pf = 24
-
-    @property
-    def all_hidden_states(self):
-        ''' Build array with all possible configuration of the hidden layer '''
-        if self._all_hidden_states is None:
-            assert self.num_hidden <= self.max_feasible_for_log_pf, \
-                'cannot generate all hidden states for num_hidden > {}'.format(self.max_feasible_for_log_pf)
-            self._all_hidden_states = np.array(list(it.product([0, 1], repeat=self.num_hidden)), dtype=np.float32)
-        return self._all_hidden_states
 
     @staticmethod
     def _create_parameter_variable(initial_value=None, default=None):
@@ -59,7 +47,6 @@ class RBM(object):
             initial_value = default
         return tf.Variable(initial_value)
 
-     
     def p_of_h_given(self, v):
         ''' Conditional probability of hidden layer given visible state '''
         # type: (tf.Tensor) -> tf.Tensor
@@ -162,21 +149,6 @@ class RBM(object):
                        + tf.reduce_sum(tf.nn.softplus(tf.matmul(visible_samples, self.weights)
                                                       + tf.transpose(self.hidden_bias)), 1))
         return -tf.reduce_mean(free_energy - log_Z)
-    
-    def exact_log_partition_function(self):
-        ''' Evaluate the partition function by exact enumerations '''
-        with tf.name_scope('exact_log_Z'):
-            # Define the exponent: H*b + sum(softplus(1 + exp(a + w*H.T)))
-            first_term = tf.matmul(self.all_hidden_states, self.hidden_bias, name='first_term')
-            with tf.name_scope('second_term'):
-                second_term = tf.matmul(self.weights, self.all_hidden_states, transpose_b=True)
-                second_term = tf.nn.softplus(tf.add(self.visible_bias, second_term))
-                second_term = tf.transpose(tf.reduce_sum(second_term, reduction_indices=[0], keep_dims=True))
-            exponent = tf.cast(first_term + second_term, dtype=tf.float64, name='exponent')
-            #exponent_mean = tf.reduce_mean(exponent)
-            exponent_mean = tf.reduce_max(exponent)
-
-            return tf.log(tf.reduce_sum(tf.exp(exponent - exponent_mean))) + exponent_mean
 
     def split_samples(self, samples):
         if samples is None:

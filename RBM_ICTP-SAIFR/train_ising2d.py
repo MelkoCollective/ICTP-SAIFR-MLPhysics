@@ -30,7 +30,7 @@ def save_parameters(sess, rbm):
     parameter_dir = 'data_ising2d/parameters'
     if not(os.path.isdir(parameter_dir)):
       os.mkdir(parameter_dir)
-    parameter_file_path =  '%s/parameters_nH%d_L%d' %(num_hidden,parameter_dir,L)
+    parameter_file_path =  '%s/parameters_nH%d_L%d' %(parameter_dir,num_hidden,L)
     parameter_file_path += '_T' + str(T)
     np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias)
 
