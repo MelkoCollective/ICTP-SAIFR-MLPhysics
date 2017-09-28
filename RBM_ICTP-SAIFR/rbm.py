@@ -33,16 +33,12 @@ class RBM(object):
             self.sample_binary_tensor(tf.constant(0.5), self.num_samples, self.num_hidden),
             trainable=False, name='hidden_samples'
         )
-        self.obs_hid_samples= tf.Variable(
-            self.sample_binary_tensor(tf.constant(0.5), self.num_samples, self.num_hidden),
-            trainable=False, name='hidden_samples_obs'
-        )
 
         self.p_of_v = None
 
+    ### Method to initialize variables: ###
     @staticmethod
     def _create_parameter_variable(initial_value=None, default=None):
-        ''' Initialize variables '''
         if initial_value is None:
             initial_value = default
         return tf.Variable(initial_value)
@@ -92,22 +88,6 @@ class RBM(object):
         self.hidden_samples = self.hidden_samples.assign(h_samples)
         self.p_of_v = p_of_v
         return self.hidden_samples, v_samples
-    
-    def observer_sampling(self, num_iterations):
-        # type: (int) -> (tf.Tensor, tf.Tensor, tf.Tensor)
-        """
-        Define persistent CD_k. Stores the results of `num_iterations` of contrastive divergence in
-        class variables.
-        :param int num_iterations: The 'k' in CD_k.
-        """
-        h_samples = self.obs_hid_samples
-        v_samples = None
-        p_of_v = 0
-        for i in range(num_iterations):
-            v_samples, p_of_v = self.sample_v_given(h_samples)
-            h_samples, _ = self.sample_h_given(v_samples)
-        self.obs_hid_samples = self.obs_hid_samples.assign(h_samples)
-        return v_samples
  
     def energy(self, hidden_samples, visible_samples):
         # type: (tf.Tensor, tf.Tensor) -> tf.Tensor
