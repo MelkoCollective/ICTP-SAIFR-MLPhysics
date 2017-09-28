@@ -5,14 +5,9 @@
 
 from __future__ import print_function
 import tensorflow as tf
-#import itertools as it
-#from random import randint
 from rbm import RBM
 import numpy as np
 import os
-#import math as m
-#import argparse
-
 
 #Input parameters:
 L           = 4    #linear size of the system
@@ -43,10 +38,10 @@ for i in range(len(T_list)):
   T = T_list[i]
   
   observables_filePath =  '%s/bins_nH%d_L%d' %(observables_dir,num_hidden,L)
-  observables_filePath += '_T.txt' + str(T)
+  observables_filePath += '_T' + str(T) + '.txt'
   bins_filePaths.append(observables_filePath)
   fout = open(observables_filePath,'w')
-  fout.write('# E       M       C       S\n')
+  fout.write('# E          M          C          S\n')
   fout.close()
   
   #Read in the trained RBM parameters:
@@ -71,9 +66,8 @@ for i in range(len(T_list)):
 # Initialize tensorflow
 init = tf.group(tf.initialize_all_variables(), tf.initialize_local_variables())
 
-# Thermodynamic observables
+# Sample thermodynamic observables:
 N = num_visible
-
 with tf.Session() as sess:
   sess.run(init)
   
@@ -86,22 +80,23 @@ with tf.Session() as sess:
       _,samples=sess.run(rbm_samples[t])
       spins = np.asarray((2*samples-1))
 
-      m_avg = np.mean(np.absolute(np.sum(spins,axis=1)))
+      #Calculate the averages of E and E^2:
       e = np.zeros((num_samples))
       e2= np.zeros((num_samples))
-
       for k in range(num_samples):
-          for i in range(N):
-              e[k] += -spins[k,i]*(spins[k,int(nn[i,0])]+spins[k,int(nn[i,1])])
-          e2[k] = e[k]*e[k]
-      e_avg = np.mean(e)
-      e2_avg= np.mean(e2) 
-      m2_avg = np.mean(np.multiply(np.sum(spins,axis=1),np.sum(spins,axis=1)))
-      c = (e2_avg-e_avg*e_avg)
-      s = (m2_avg-m_avg*m_avg)
+        for i in range(N):
+          e[k] += -spins[k,i]*(spins[k,int(nn[i,0])]+spins[k,int(nn[i,1])])
+        e2[k] = e[k]*e[k]
+      e_avg  = np.mean(e)
+      e2_avg = np.mean(e2)
       
-      fout.write('%.6f  ' % (e_avg/float(N)))
-      fout.write('%.6f  ' % (m_avg/float(N)))
-      fout.write('%.6f  ' % (c/float(N*T_list[t]**2)))
-      fout.write('%.6f\n' % (s/float(N*T_list[t])))
+      #Calculate the averages of |M| and M^2:
+      m_avg  = np.mean(np.absolute(np.sum(spins,axis=1)))
+      m2_avg = np.mean(np.multiply(np.sum(spins,axis=1),np.sum(spins,axis=1)))
+
+      #Calculate the specific heat and susceptibility:
+      c = (e2_avg-e_avg*e_avg)/float(N*T_list[t]**2)
+      s = (m2_avg-m_avg*m_avg)/float(N*T_list[t])
+      
+      fout.write('%.8f  %.8f  %.8f  %.8f\n' % (e_avg/float(N), m_avg/float(N), c, s))
       fout.close()
