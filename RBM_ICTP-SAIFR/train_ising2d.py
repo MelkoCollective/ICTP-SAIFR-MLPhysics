@@ -24,18 +24,15 @@ num_gibbs           = 10       #number of Gibbs iterations (steps of contrastive
 num_samples         = 10       #number of chains in PCD
 
 ### Function to save weights and biases to a parameter file ###
-def save_parameters(sess, results_dir, rbm, epochs,L,T):
+def save_parameters(sess, rbm):
     weights, visible_bias, hidden_bias = sess.run([rbm.weights, rbm.visible_bias, rbm.hidden_bias])
     
     parameter_dir = 'data_ising2d/parameters'
     if not(os.path.isdir(parameter_dir)):
       os.mkdir(parameter_dir)
-    parameter_file_path =  '%s/parameters_L%d' %(parameter_dir,L)
+    parameter_file_path =  '%s/parameters_nH%d_L%d' %(num_hidden,parameter_dir,L)
     parameter_file_path += '_T' + str(T)
-    np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias,
-                        epochs=epochs) 
-class Args(object):
-    pass
+    np.savez_compressed(parameter_file_path, weights=weights, visible_bias=visible_bias, hidden_bias=hidden_bias)
 
 class Placeholders(object):
     pass
@@ -75,11 +72,6 @@ optimizer = tf.train.AdamOptimizer(learning_rate, epsilon=1e-2)
 ops.lr=learning_rate
 ops.train = optimizer.minimize(cost, global_step=ops.global_step)
 ops.init = tf.group(tf.initialize_all_variables(), tf.initialize_local_variables())
-logZ = rbm.exact_log_partition_function()
-placeholders.logZ = tf.placeholder(tf.float32) 
-NLL = rbm.neg_log_likelihood(placeholders.visible_samples,placeholders.logZ)
-p_x = tf.exp(rbm.free_energy(placeholders.visible_samples))
-all_v_states= np.array(list(it.product([0, 1], repeat=num_visible)), dtype=np.float32)
 
 with tf.Session() as sess:
   sess.run(ops.init)
@@ -88,18 +80,16 @@ with tf.Session() as sess:
   epochs_done = 1  #epochs counter
   for ii in range(nsteps):
     if bcount*bsize+ bsize>=xtrain.shape[0]:
-     bcount=0
-     ept=np.random.permutation(xtrain)
+      bcount=0
+      ept=np.random.permutation(xtrain)
 
     batch=ept[ bcount*bsize: bcount*bsize+ bsize,:]
-    bcount=bcount+1
+    bcount += 1
     feed_dict = {placeholders.visible_samples: batch}
     
     _, num_steps = sess.run([ops.train, ops.global_step], feed_dict=feed_dict)
 
     if num_steps % iterations_per_epoch == 0:
-      print ('Epoch = %d' % epochs_done,end='')
-
-      print()
-      #save_parameters(sess, rbm)
+      print ('Epoch = %d' % epochs_done)
+      save_parameters(sess, rbm)
       epochs_done += 1
