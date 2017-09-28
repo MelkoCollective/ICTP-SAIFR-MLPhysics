@@ -26,7 +26,7 @@ num_samples         = 10       #number of chains in PCD
 def save_parameters(sess, rbm):
     weights, visible_bias, hidden_bias = sess.run([rbm.weights, rbm.visible_bias, rbm.hidden_bias])
     
-    parameter_dir = 'data_ising2d/parameters'
+    parameter_dir = 'data_ising2d/RBM_parameters'
     if not(os.path.isdir(parameter_dir)):
       os.mkdir(parameter_dir)
     parameter_file_path =  '%s/parameters_nH%d_L%d' %(parameter_dir,num_hidden,L)

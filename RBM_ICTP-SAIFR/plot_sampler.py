@@ -16,7 +16,7 @@ def observe_ising2d():
     plt.figure(figsize=(12,9), facecolor='w', edgecolor='k')
     
     # Load the MC averages
-    nameMC  = 'data_ising2d/observables/MC_ising2d_L'
+    nameMC  = 'data_ising2d/MC_results_solutions/MC_ising2d_L'
     nameMC += str(L)
     nameMC += '_Observables.txt'
     fileMC = open(nameMC,'r')
@@ -29,7 +29,7 @@ def observe_ising2d():
         plt.clf()
                 
         # Load the rbm averages
-        observables = np.loadtxt('data_ising2d/observables/sampler_observer.txt')
+        observables = np.loadtxt('data_ising2d/RBM_observables/sampler_observer.txt')
         
         # Plot the energy
         plt.subplot(221)
