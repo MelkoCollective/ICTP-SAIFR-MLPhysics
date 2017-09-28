@@ -64,7 +64,7 @@ learning_rate    = tf.train.exponential_decay(
     learning_rate_start,
     ops.global_step,
     100 * xtrain.shape[0]/bsize,
-    1.0 # decay rate =1 means no decay
+    1.0 # decay rate = 1 means no decay
 )
   
 cost      = rbm.neg_log_likelihood_grad(placeholders.visible_samples, num_gibbs=num_gibbs)
