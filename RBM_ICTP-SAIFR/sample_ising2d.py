@@ -14,7 +14,7 @@ L           = 4    #linear size of the system
 num_visible = L*L  #number of visible nodes
 num_hidden  = 4    #number of hidden nodes
 
-#Temperature list for which there are trained RBM parameters stored in data_ising2d/parameters_solutions
+#Temperature list for which there are trained RBM parameters stored in data_ising2d/RBM_parameters_solutions
 T_list = [1.0,1.254,1.508,1.762,2.016,2.269,2.524,2.778,3.032,3.286,3.540]
 
 #Read in nearest neighbours for the lattice:

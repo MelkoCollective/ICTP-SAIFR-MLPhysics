@@ -1,96 +1,88 @@
-import numpy as np
+########## ICTP-SAIFR Minicourse on Machine Learning for Many-Body Physics ##########
+### Roger Melko, Juan Carrasquilla, Lauren Hayward Sierens and Giacomo Torlai
+### Tutorial 4: Print sampled observables as a function of temperature
+#####################################################################################
+
 import matplotlib.pyplot as plt
-import argparse
-import math as m
-plt.style.use('classic')
+import numpy as np
 
-def plot_ising2d_observables(L):
+#Input parameters:
+L           = 4    #linear size of the system
+num_hidden  = 4    #number of hidden nodes
 
-    fig = plt.figure(figsize=(12,9), facecolor='w', edgecolor='k')
+#Temperature list for which there are sampled observables stored in data_ising2d/RBM_observables
+T_RBM = [1.0,1.254,1.508,1.762,2.016,2.269,2.524,2.778,3.032,3.286,3.540]
 
-    # Plot properties
-    colors = ["#43FF7C","#3425FF","#FF5858","#68C3FF","#AA68FF","#FFC368"]
-    mark  = '^'
-    lineW = 2.0
-    lineS = '-'
-    markerSize = 12
-   
-    # RBMs used in the plot (sorted with number of hidden nodes) 
-    hidden = [4,16,64]
-    
-    # Open MC data file
-    nameMC  = 'data_ising2d/observables/MC_ising2d_L'
-    nameMC += str(L)
-    nameMC += '_Observables.txt'
-    fileMC = open(nameMC,'r')
+# Read in the observables sampled from the RBM and average over all bins:
+E_RBM = []
+M_RBM = []
+C_RBM = []
+S_RBM = []
+for T in T_RBM:
+  fileName = 'data_ising2d/RBM_observables/bins_nH%d_L%d' %(num_hidden,L)
+  fileName += '_T' + str(T) + '.txt'
+  file_RBM = open(fileName,'r')
+  file_RBM.readline() #read the first line (comment line)
+  data_RBM = np.loadtxt(file_RBM)
+  E_RBM.append( np.mean(data_RBM[:,0]) )
+  M_RBM.append( np.mean(data_RBM[:,1]) )
+  C_RBM.append( np.mean(data_RBM[:,2]) )
+  S_RBM.append( np.mean(data_RBM[:,3]) )
 
-    # Get observables names
-    header = fileMC.readline().lstrip('#').split()
-    dataMC = np.loadtxt(fileMC)
+# Read in observables from MC data file:
+file_MC = open('data_ising2d/MC_results_solutions/MC_ising2d_L%d_Observables.txt' %L,'r')
+file_MC.readline() #read the first line (comment line)
+data_MC = np.loadtxt(file_MC)
+T_MC = data_MC[:,0]
+E_MC = data_MC[:,1]
+M_MC = data_MC[:,2]
+C_MC = data_MC[:,3]
+S_MC = data_MC[:,4]
 
-    x = [i for i in range(len(dataMC))]
-    observables = ['E','M','C','S']
+# Read in the observables from the RBM_observables_solutions directory:
+file_RBM_sol = open('data_ising2d/RBM_observables_solutions/RBM_nH%d_ising2d_L%d_Observables.txt' %(num_hidden,L),'r')
+file_RBM_sol.readline() #read the first line (comment line)
+data_sol = np.loadtxt(file_RBM_sol)
+T_sol = data_sol[:,0]
+E_sol = data_sol[:,1]
+M_sol = data_sol[:,2]
+C_sol = data_sol[:,3]
+S_sol = data_sol[:,4]
 
-    sb = 221
+### Plot the results: ###
+fig = plt.figure(figsize=(10,7), facecolor='w', edgecolor='k')
 
-    # Plot different thermodynamics observables
-    for obs in observables:
-        plt.subplot(sb)
-        sb += 1
+plt.subplot(221)
+plt.plot(T_MC,  E_MC,  'o-', label='MC')
+plt.plot(T_sol, E_sol, 'o-', label='$n_H = %d$, sol.' %num_hidden)
+plt.plot(T_RBM, E_RBM, 'o-', label='$n_H = %d$' %num_hidden)
+plt.xlabel('$T$')
+plt.ylabel('$<E>/N$')
+plt.legend(loc='best')
 
-        error = 'd' + obs
-        data = dataMC[:,header.index(obs)]
-        plt.plot(x,data,color="k", 
-            marker='o',
-            linewidth=lineW, 
-            linestyle=lineS,
-            markersize = markerSize)
-        
-        # Plot from RBMs with different number of hidden nodes
-        for i, n_h in enumerate(hidden):
-        
-            nameRBM = 'data_ising2d/observables/RBM_nH'
-            nameRBM += str(n_h) + '_ising2d_L'
-            nameRBM += str(L) + '_Observables.txt'
-            fileRBM = open(nameRBM,'r')
-            header  = fileRBM.readline().lstrip('#').split()
-            dataRBM = np.loadtxt(fileRBM)
-            data = dataRBM[:,header.index(obs)]
-            err  = dataRBM[:,header.index(error)]
-            lab = '$n_h$=' 
-            lab += str(n_h)
-            
-            plt.errorbar(x,data,yerr=err,
-                    color = colors[i],
-                    linewidth = lineW,
-                    linestyle = lineS,
-                    marker = mark,
-                    markersize = markerSize,
-                    label =lab)
-    
-        # Set Label and Tickes
-        plt.xlabel('$T$', fontsize=20)
-        plt.xticks([0,5,10],[1.0,2.269,3.54],fontsize=15)
-        plt.xlim([-0.3,10.3])
-        ylab = '$' + obs + '$'
-        plt.ylabel(ylab,fontsize=20)
+plt.subplot(222)
+plt.plot(T_MC, M_MC, 'o-')
+plt.plot(T_sol, M_sol, 'o-')
+plt.plot(T_RBM, M_RBM, 'o-')
+plt.xlabel('$T$')
+plt.ylabel('$<M>/N$')
 
-    plt.legend(loc='upper left')    
-    plt.tight_layout()
-    plt.show()
-    #savefig('observables.pdf', format='pdf', dpi=1000)
+plt.subplot(223)
+plt.plot(T_MC, C_MC, 'o-')
+plt.plot(T_sol, C_sol, 'o-')
+plt.plot(T_RBM, C_RBM, 'o-')
+plt.xlabel('$T$')
+plt.ylabel('$C/N$')
 
+plt.subplot(224)
+plt.plot(T_MC, S_MC, 'o-')
+plt.plot(T_sol, S_sol, 'o-')
+plt.plot(T_RBM, S_RBM, 'o-')
+plt.xlabel('T')
+plt.ylabel('$\chi/N$')
 
-if __name__ == "__main__":
-    
-    """ Read command line arguments """
-    parser = argparse.ArgumentParser()
+plt.suptitle('%d x %d Ising model' %(L,L))
 
-    parser.add_argument('-L',type=int)
-    parser.add_argument('-T',type=float)
-    parser.add_argument('-B',type=float)
-     
-    par = parser.parse_args()
-
-    plot_ising2d_observables(par.L)
+plt.show()
+plt.savefig('RBM_observables.pdf')
 
