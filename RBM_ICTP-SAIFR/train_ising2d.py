@@ -13,8 +13,7 @@ import os
 
 # Input parameters:
 L  = 4     #linear size of the system
-T  = 2.269 #temperature (MC configuration training samples are supplied for
-           #T=1.0,1.254,1.508,1.762,2.016, 2.269,2.524,2.778,3.032,3.286 and 3.540)
+T  = 2.269 #a temperature for which there are MC configurations stored in data_ising2d/MC_results_solutions 
 num_visible         = L*L      #number of visible nodes
 num_hidden          = 4        #number of hidden nodes
 nsteps              = 1000000  #number of training steps
@@ -45,7 +44,7 @@ visible_bias = None  #visible bias
 hidden_bias  = None  #hidden bias
 
 # Load the MC configuration training data:
-trainFileName = 'data_ising2d/MC_results/ising2d_L'+str(L)+'_T'+str(T)+'_train.txt'
+trainFileName = 'data_ising2d/MC_results_solutions/ising2d_L'+str(L)+'_T'+str(T)+'_train.txt'
 xtrain        = np.loadtxt(trainFileName)
 ept           = np.random.permutation(xtrain) # random permutation of training data
 iterations_per_epoch = xtrain.shape[0] / bsize  
