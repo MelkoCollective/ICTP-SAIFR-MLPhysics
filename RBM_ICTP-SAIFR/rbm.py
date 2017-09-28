@@ -79,8 +79,8 @@ class RBM(object):
     h_samples = self.hidden_samples
     v_samples = None
     for i in range(num_iterations):
-        v_samples = self.sample_v_given(h_samples)
-        h_samples = self.sample_h_given(v_samples)
+      v_samples = self.sample_v_given(h_samples)
+      h_samples = self.sample_h_given(v_samples)
 
     self.hidden_samples = self.hidden_samples.assign(h_samples)
     return self.hidden_samples, v_samples
